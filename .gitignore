@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+.Python
+*.egg-info/
+
+# Virtual environments (if you ever add one)
+venv/
+env/
+.venv/
+
+# Environment variables / secrets
+.env
+*.env
+credentials.json
+*-service-account.json
+
+# OS/editor cruft
+.DS_Store
+.vscode/
+.idea/
+
+# GCP local config (if you ever run gcloud CLI locally)
+.gcloud/
