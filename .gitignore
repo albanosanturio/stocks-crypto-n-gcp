@@ -23,3 +23,6 @@ credentials.json
 
 # GCP local config (if you ever run gcloud CLI locally)
 .gcloud/
+
+# testing and csv files
+alphavantage_history_qa.csv

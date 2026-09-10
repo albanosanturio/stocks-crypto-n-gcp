@@ -24,7 +24,7 @@ ALPHA_VANTAGE_URL = "https://www.alphavantage.co/query"
 
 TICKERS = ["SPY", "QQQ", "DIA"]
 
-CSV_OUTPUT_FILE = "alphavantage_history_qa.csv"
+CSV_OUTPUT_FILE = "./scripts/history_fetch/alphavantage/alphavantage_history.csv"
 
 if not ALPHA_VANTAGE_KEY:
     raise RuntimeError("Set ALPHA_VANTAGE_KEY as an environment variable before running.")
@@ -67,32 +67,18 @@ def fetch_history(symbol):
     return rows
 
 def write_csv(all_rows):
-    """
-    Pivots the flat row list (one row per symbol+date) into one row per
-    date with a column per ticker, and writes it to CSV for QA in a
-    spreadsheet before loading into BigQuery.
-    """
-    # date -> {symbol: price}
-    by_date = {}
-    for row in all_rows:
-        date_str = row["fetched_at"][:10]  # just the date part, e.g. "2026-09-08"
-        by_date.setdefault(date_str, {})[row["symbol"]] = row["price"]
+
+    sorted_rows = sorted(all_rows, key=lambda r: r["fetched_at"], reverse=True)
  
-    sorted_dates = sorted(by_date.keys(), reverse=True)
- 
-    print(f"Writing {len(sorted_dates)} rows to {CSV_OUTPUT_FILE}...")
+    print(f"Writing {len(sorted_rows)} rows to {CSV_OUTPUT_FILE}...")
  
     with open(CSV_OUTPUT_FILE, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["date"] + TICKERS)
- 
-        for date_str in sorted_dates:
-            row = [date_str]
-            for symbol in TICKERS:
-                row.append(by_date[date_str].get(symbol, ""))
-            writer.writerow(row)
+        writer = csv.DictWriter(f, fieldnames=["symbol", "price", "source", "fetched_at"])
+        writer.writeheader()
+        writer.writerows(sorted_rows)
  
     print("CSV written.")
+ 
 
 def main():
     #client = bigquery.Client(project=PROJECT_ID)
