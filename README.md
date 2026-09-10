@@ -6,22 +6,23 @@ Enables an API endpoint to get this condensed data and some metrics (tbd)
 
 ## What it does right now
 
-- A Cloud Run function hits the CoinGecko API for BTC/ETH/SOL prices
-- Writes the results into a BigQuery table
-- Cloud Scheduler triggers it automatically (currently hourly, will drop to daily once things are stable)
-- The function is locked down — no public access, only authenticated callers (like Scheduler) can trigger it
+- Cloud Run functions hit CoinGecko (BTC/ETH/SOL), Alpha Vantage (SPY/QQQ/DIA), and FRED (Fed funds rate, 10Y Treasury) on a schedule
+- Writes results into BigQuery tables (`prices`, `stocks`, `macro`)
+- Cloud Scheduler triggers each one automatically (daily)
+- All functions are locked down — no public access, only authenticated callers (like Scheduler) can trigger them
+- ~100 days of history backfilled per source via one-time local scripts
 
 
 ## Architecture (current)
 
 ```
-CoinGecko API
+CoinGecko / Alpha Vantage / FRED APIs
       ↓
-Cloud Run function (Python, HTTP-triggered)
+Cloud Run functions (Python, HTTP-triggered)
       ↓
-BigQuery (market_data.prices)
+BigQuery (market_data.prices / .stocks / .macro)
       ↑
-Cloud Scheduler (hourly cron, OIDC-authenticated)
+Cloud Scheduler (daily cron, OIDC-authenticated)
 ```
 
 ## Stack
@@ -29,15 +30,17 @@ Cloud Scheduler (hourly cron, OIDC-authenticated)
 - **Compute**: Cloud Run functions (Python 3.12)
 - **Storage**: BigQuery
 - **Scheduling**: Cloud Scheduler
-- **Data source**: CoinGecko public API (crypto)
+- **Data sources**: CoinGecko (crypto), Alpha Vantage (stocks), FRED (macro)
 
 ## Roadmap
 
 - [x] CoinGecko crypto prices → BigQuery, automated
-- [ ] FRED macro data (Fed funds rate, 10Y Treasury yield) → new BigQuery table
-- [ ] Alpha Vantage US stock prices (note: free tier is tight — 25 req/day — so this one stays on a daily cron, not hourly)
+- [x] FRED macro data (Fed funds rate, 10Y Treasury yield) → BigQuery
+- [x] Alpha Vantage US stock prices → BigQuery (free tier tight — 25 req/day — stays on daily cron)
+- [x] Historical backfill (~100 days) for all three sources
 - [ ] Rename function/service (currently a placeholder name from testing)
-- [ ] FastAPI layer on Cloud Run, two endpoints to start: `/api/volatility/{symbol}`, `/api/macro-context`
+- [ ] FastAPI layer on Cloud Run, two endpoints to start: `/api/volatility/{symbol}`, `/api/market-snapshot`
+- [ ] Looker Studio dashboard (scorecards + time-series), published public
 - [ ] Infrastructure as code (Terraform), so the setup steps above become a file instead of a checklist
 
 ## Not in scope for v1
