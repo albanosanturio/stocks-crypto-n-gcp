@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Market Data API</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; color: #222; }
+    h1 { margin-bottom: 0.2rem; }
+    h2 { margin-top: 2.2rem; }
+    code { background: #f2f2f2; padding: 0.1rem 0.35rem; border-radius: 4px; }
+    iframe { width: 100%; height: 1800px; border: 0; }
+    .sub { color: #666; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <h1>Market Data API</h1>
+  <p class="sub">A portfolio project: crypto, stocks and macro data flowing through a pipeline on GCP.</p>
+  
+  <div style="width:100%; max-width:680px; margin:1.5rem auto 0; overflow-x:auto;">
+<svg width="100%" viewBox="0 0 680 175" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Data pipeline: sources, ingestion, storage, serving</title>
+
+  <!-- column labels -->
+  <g font-size="10" fill="#666" font-family="sans-serif" text-anchor="middle">
+    <text x="80" y="16">Sources</text>
+    <text x="275" y="16">Ingestion</text>
+    <text x="448" y="16">Storage</text>
+    <text x="604" y="16">Serving</text>
+  </g>
+
+  <!-- sources -->
+  <rect x="20" y="28" width="120" height="34" rx="17" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="80" y="45" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#04342C" font-family="sans-serif">CoinGecko</text>
+  <rect x="20" y="78" width="120" height="34" rx="17" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="80" y="95" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#04342C" font-family="sans-serif">Alpha Vantage</text>
+  <rect x="20" y="128" width="120" height="34" rx="17" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="80" y="145" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#04342C" font-family="sans-serif">FRED</text>
+
+  <!-- sources -> Cloud Run -->
+  <g fill="none" stroke="#5DCAA5" stroke-width="1.5">
+    <path d="M140 45 L167 45 L167 95 L194 95"/>
+    <path d="M140 95 L194 95"/>
+    <path d="M140 145 L167 145 L167 95 L194 95"/>
+  </g>
+  <path d="M194 90 L202 95 L194 100 Z" fill="#5DCAA5"/>
+
+  <!-- Cloud Run -->
+  <rect x="200" y="78" width="150" height="34" rx="17" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text x="275" y="95" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#26215C" font-family="sans-serif">Cloud Run functions</text>
+  <text x="275" y="128" text-anchor="middle" font-size="10" fill="#666" font-family="sans-serif">daily, via Cloud Scheduler</text>
+
+  <!-- Cloud Run -> BigQuery -->
+  <line x1="350" y1="95" x2="391" y2="95" stroke="#7F77DD" stroke-width="1.5"/>
+  <path d="M391 90 L399 95 L391 100 Z" fill="#7F77DD"/>
+
+  <!-- BigQuery -->
+  <rect x="396" y="78" width="104" height="34" rx="17" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+  <text x="448" y="95" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#4A1B0C" font-family="sans-serif">BigQuery</text>
+
+  <!-- BigQuery -> outputs -->
+  <g fill="none" stroke="#F0997B" stroke-width="1.5">
+    <path d="M500 95 L522 95 L522 65 L544 65"/>
+    <path d="M500 95 L522 95 L522 125 L544 125"/>
+  </g>
+  <path d="M544 60 L552 65 L544 70 Z" fill="#F0997B"/>
+  <path d="M544 120 L552 125 L544 130 Z" fill="#F0997B"/>
+
+  <!-- outputs -->
+  <rect x="548" y="48" width="112" height="34" rx="17" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+  <text x="604" y="65" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#412402" font-family="sans-serif">Data Studio</text>
+  <rect x="548" y="108" width="112" height="34" rx="17" fill="#FBEAF0" stroke="#993556" stroke-width="0.5"/>
+  <text x="604" y="125" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#4B1528" font-family="sans-serif">FastAPI</text>
+</svg>
+</div>
+<p style="text-align:center; font-size:0.85rem; color:#666;">Crypto, stocks and macro come in daily from three public APIs, land in BigQuery, and are served through SQL views to a dashboard and an API.</p>
+
+
+
+  <p>Daily prices are collected from public APIs, stored in BigQuery, and served through the dashboard and endpoints below.
+  This is a portfolio project, not financial advice.</p>
+
+  <h2>Dashboard</h2>
+  <p><a href="https://datastudio.google.com/reporting/cc910568-5f86-4b40-970f-50407584abbd" target="_blank" rel="noopener">Open the full dashboard in a new tab</a> (recommended on phones).</p>
+  <iframe
+    src="https://datastudio.google.com/embed/reporting/cc910568-5f86-4b40-970f-50407584abbd/page/8kd8F"
+    frameborder="0" allowfullscreen
+    sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+
+  <h2>Endpoints</h2>
+  <ul>
+    <li><a href="/api/market-snapshot"><code>GET /api/market-snapshot</code></a>: latest price for each tracked crypto and stock, grouped by category.</li>
+    <li><a href="/api/volatility/BTC?days=30"><code>GET /api/volatility/{symbol}?days=30</code></a>: daily and annualized volatility, price range and price change over the last N days (1 to 365).</li>
+    <li><a href="/docs"><code>/docs</code></a>: interactive documentation where you can try each endpoint.</li>
+  </ul>
+  <p>Valid symbols: BTC, ETH, SOL, SPY, QQQ, DIA.</p>
+
+  <h2>What is tracked, and why</h2>
+  <ul>
+    <li><strong>Crypto (BTC, ETH, SOL):</strong> the three best-known coins.</li>
+    <li><strong>Stocks (SPY, QQQ, DIA):</strong> broad market, tech/growth and blue-chip, so volatility comparisons are more interesting.</li>
+    <li><strong>Macro (FEDFUNDS, DGS10):</strong> collected daily and stored; not yet exposed in the API or dashboard.</li>
+  </ul>
+
+  <h2>Data sources</h2>
+  <p>CoinGecko (crypto), Alpha Vantage (stocks) and FRED (macro). Everything runs on Cloud Scheduler, Cloud Run and BigQuery.</p>
+
+  <h2>Known limitations</h2>
+  <ul>
+    <li>Stock volatility counts weekdays only; market holidays still appear as zero-return days.</li>
+    <li>Volatility describes the past window only. It is not a forecast.</li>
+    <li>The first request after a quiet period can take a few seconds (Cloud Run cold start).</li>
+  </ul>
+
+  <h2>Roadmap</h2>
+  <ul>
+    <li>Slack alert when a day's data is missing</li>
+    <li>Returns endpoint and a reindexable comparison chart</li>
+    <li>Argentina-specific sources (MERVAL, ARS/USD MEP)</li>
+    <li>Secret Manager and infrastructure as code</li>
+  </ul>
+</body>
+</html>
